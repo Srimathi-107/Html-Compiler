@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML Compiler</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="header">
+      <h1 style="margin: 0px">Code Editor</h1>
+      <div class="search">
+        <input type="text" id="search" placeholder="Search" />
+        <button id="find">Find</button>
+        <p id="res"></p>
+        <button id="prev"><i class="ri-arrow-left-wide-line"></i></button>
+        <button id="next"><i class="ri-arrow-right-wide-line"></i></button>
+      </div>
+      <div style="display:flex;gap: 20px;">
+        <button id="run" onclick="run()">Run</button>
+        <button id="autosaved">Auto save : OFF</button>
+        <button id="menu"><i class="ri-more-2-fill"></i></button>
+      </div>
+      <div id="btnicon">
+        <div id="closed"><i class="ri-close-line"></i></div>
+        <button id="download">Download <i class="ri-download-2-line"></i></button>
+        <button id="theme">Dark / Light Mode <i class="ri-sun-line" id="themeicon"></i></button>
+        <button id="full">Full Screen <i class="ri-fullscreen-line" id="fullicon"></i>
+        </button>
+        <button id="undo">Undo <i class="ri-arrow-go-back-line"></i></button>
+        <button id="redo">Redo <i class="ri-arrow-go-forward-line"></i></button>
+        <button id="clear">Clear All</button>
+      </div>
+    </div>
+    <div class="container">
+      <div class="left">
+        <div id="html-code">
+          <label for=""
+            >HTML <i class="ri-file-2-line" id="htmlcopyicon"></i
+          ></label>
+          <div class="wrapper">
+            <div class="line-number" id="html-num">1</div>
+            <textarea
+              placeholder="Write your html code"
+              name=""
+              id="html"
+            ></textarea>
+          </div>
+        </div>
+        <div id="css-code">
+          <label for=""
+            >CSS <i class="ri-file-2-line" id="csscopyicon"></i
+          ></label>
+          <div class="wrapper">
+            <div class="line-number" id="css-num">1</div>
+            <textarea
+              placeholder="Write your css code"
+              name=""
+              id="css"
+            ></textarea>
+          </div>
+        </div>
+        <div id="js-code">
+          <label for=""
+            >JS <i class="ri-file-2-line" id="jscopyicon"></i
+          ></label>
+          <div class="wrapper">
+            <div class="line-number" id="js-num">1</div>
+            <textarea
+              placeholder="Write your js code"
+              name=""
+              id="js"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="right">
+        <label for="">OUTPUT</label>
+        <iframe src="" frameborder="0" id="out"></iframe>
+      </div>
+    </div>
+    <script src="function.js"></script>
+    <script>
+      let menu=document.getElementById("menu").addEventListener("click",()=>{
+        btnicon.classList.toggle("showmenu")
+      })
+      let closed=document.getElementById("closed")
+      closed.addEventListener("click",()=>{
+        btnicon.classList.remove("showmenu")
+      })
+      let undo = document
+        .getElementById("undo")
+        .addEventListener("click", () => {
+          undoo();
+        });
+      let redo = document
+        .getElementById("redo")
+        .addEventListener("click", () => {
+          redoo();
+        });
+      let clear = document.getElementById("clear");
+      clear.addEventListener("click", () => {
+        clearallvalue();
+      });
+      let theme = document
+        .getElementById("theme")
+        .addEventListener("click", () => {
+          themeicon.classList.toggle("ri-moon-line");
+          themeicon.classList.toggle("ri-sun-line");
+          document.body.classList.toggle("light");
+        });
+      let themeicon = document.getElementById("themeicon");
+      // let full=document.getElementById("full")
+      let fullicon = document.getElementById("fullicon");
+      let full = document
+        .getElementById("full")
+        .addEventListener("click", () => {
+          fullicon.classList.toggle("ri-fullscreen-line");
+          fullicon.classList.toggle("ri-fullscreen-exit-line");
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+          // document.body.classList.toggle("light")
+        });
+
+      let htmlnum = document.getElementById("html-num");
+      let cssnum = document.getElementById("css-num");
+      let jsnum = document.getElementById("js-num");
+
+      let html = document.getElementById("html");
+      let css = document.getElementById("css");
+      let js = document.getElementById("js");
+      let runn = document.getElementById("run");
+      let out = document.getElementById("out");
+
+      html.addEventListener("input", () => {
+        updlinenum(html, htmlnum);
+        // savecodelocalstrge(); r use ctrl+s r autosave after a sec sav code in localstrg
+        autosave();
+        savehistory();
+        if (autorun) {
+          run();
+        }
+      });
+      css.addEventListener("input", () => {
+        updlinenum(css, cssnum);
+        // savecodelocalstrge();
+        savehistory();
+        if (autorun) {
+          run();
+        }
+      });
+      js.addEventListener("input", () => {
+        updlinenum(js, jsnum);
+        // savecodelocalstrge();
+        savehistory();
+        if (autorun) {
+          run();
+        }
+      });
+
+      html.addEventListener("scroll", () => scrolll(html, htmlnum));
+      css.addEventListener("scroll", () => scrolll(css, cssnum));
+      js.addEventListener("scroll", () => scrolll(js, jsnum));
+
+      html.addEventListener("keydown", (e) => {
+        // tabfunc(html,e)
+        editorKeydown(html, e);
+        autoclosebracket(html, e);
+      });
+      css.addEventListener("keydown", (e) => {
+        // tabfunc(css,e)
+        editorKeydown(css, e);
+        autoclosebracket(css, e);
+      });
+      js.addEventListener("keydown", (e) => {
+        // tabfunc(js,e)
+        editorKeydown(js, e);
+        autoclosebracket(js, e);
+      });
+
+      let htmlcopyicon = document.getElementById("htmlcopyicon");
+      htmlcopyicon.addEventListener("click", () => {
+        htmlcopyicon.classList.toggle("ri-file-2-line");
+        htmlcopyicon.classList.toggle("ri-check-line");
+        copycode(html);
+      });
+      let csscopyicon = document.getElementById("csscopyicon");
+      csscopyicon.addEventListener("click", () => {
+        csscopyicon.classList.toggle("ri-file-2-line");
+        csscopyicon.classList.toggle("ri-check-line");
+        copycode(css);
+      });
+      let jscopyicon = document.getElementById("jscopyicon");
+      jscopyicon.addEventListener("click", () => {
+        jscopyicon.classList.toggle("ri-file-2-line");
+        jscopyicon.classList.toggle("ri-check-line");
+        copycode(js);
+      });
+
+      let history = [];
+      let hisindex = -1;
+      function savehistory() {
+        history = history.slice(0, hisindex + 1);
+        // console.log(history)
+        history.push({
+          html: html.value,
+          css: css.value,
+          js: js.value,
+        });
+        hisindex++;
+      }
+
+      let find = document
+        .getElementById("find")
+        .addEventListener("click", () => {
+          searchcode();
+        });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "f") {
+          e.preventDefault();
+          search.focus();
+          search.select();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "s") {
+          e.preventDefault();
+          savecodelocalstrge();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "z") {
+          e.preventDefault();
+          undoo();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "y") {
+          e.preventDefault();
+          redoo();
+        }
+      });
+      let next = document.getElementById("next");
+      let prev = document.getElementById("prev");
+      let currentEditor = html;
+      let searchPos = 0;
+      html.addEventListener("click", () => {
+        currentEditor = html;
+        searchPos = 0;
+      });
+
+      css.addEventListener("click", () => {
+        currentEditor = css;
+        searchPos = 0;
+      });
+
+      js.addEventListener("click", () => {
+        currentEditor = js;
+        searchPos = 0;
+      });
+
+      next.addEventListener("click", () => {
+        let searchText = search.value;
+        if (searchText === "") {
+          return;
+        }
+        let pos = currentEditor.value.indexOf(searchText, searchPos);
+        if (pos === -1) {
+          searchPos = 0;
+          pos = currentEditor.value.indexOf(searchText, searchPos);
+        }
+        if (pos !== -1) {
+          currentEditor.focus();
+          currentEditor.selectionStart = pos;
+          currentEditor.selectionEnd = pos + searchText.length;
+          searchPos = pos + searchText.length;
+        }
+      });
+      prev.addEventListener("click", () => {
+        let searchText = search.value;
+        if (searchText === "") {
+          return;
+        }
+        // Current position-க்கு முன்னாடி search பண்ணும்
+        let pos = currentEditor.value.lastIndexOf(
+          searchText,
+          searchPos - searchText.length - 1,
+        );
+        // Beginning-க்கு வந்துட்டா → last match-க்கு போகும்
+        if (pos === -1) {
+          pos = currentEditor.value.lastIndexOf(searchText);
+        }
+        if (pos !== -1) {
+          currentEditor.focus();
+          currentEditor.selectionStart = pos;
+          currentEditor.selectionEnd = pos + searchText.length;
+          searchPos = pos;
+        }
+      });
+
+      let autorun = false;
+      let autosaved = document.getElementById("autosaved");
+      autosaved.addEventListener("click", () => {
+        autorun = !autorun;
+        if (autorun) {
+          autosaved.innerHTML = "Auto save : ON";
+          run();
+        } else {
+          autosaved.innerHTML = "Auto save : OFF";
+        }
+      });
+
+      let download = document
+        .getElementById("download")
+        .addEventListener("click", () => {
+          let code = out.contentDocument.documentElement.outerHTML;
+          let file = new Blob([code], {
+            type: "text/html",
+          });
+          let url = URL.createObjectURL(file);
+          let a = document.createElement("a");
+          a.href = url;
+          a.download = "Index.html";
+          a.click();
+        });
+    </script>
+  </body>
+</html>
